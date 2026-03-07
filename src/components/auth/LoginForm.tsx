@@ -26,7 +26,7 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#030712] relative overflow-hidden">
+    <div className="min-h-dvh flex items-center justify-center p-4 bg-[#030712] relative overflow-hidden">
       {/* Dynamic Backgrounds */}
       <div className="absolute top-[-20%] left-[-10%] w-[70%] h-[70%] bg-brand-600/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-600/10 blur-[120px] rounded-full mix-blend-screen pointer-events-none" />

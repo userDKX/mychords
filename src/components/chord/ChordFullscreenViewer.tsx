@@ -56,7 +56,7 @@ export function ChordFullscreenViewer({ chords, songTitle, capo, onClose }: Chor
   const sectionLabel = currentChord?.section
 
   return (
-    <div className="fixed inset-0 z-[200] bg-[#030712] flex flex-col">
+    <div className="fixed inset-0 z-[200] bg-[#030712] flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-4 py-3 shrink-0">
         <div className="flex items-center gap-3 min-w-0">

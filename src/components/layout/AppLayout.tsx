@@ -13,14 +13,14 @@ export function AppLayout() {
   const hideMobileNav = location.pathname.match(/^\/songs\/.+/)
 
   return (
-    <div className="min-h-screen bg-[#030712] flex flex-col items-center relative overflow-hidden">
+    <div className="min-h-dvh bg-[#030712] flex flex-col items-center relative overflow-hidden">
       {/* Background gradients for premium feel */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-brand-600/15 blur-[120px] rounded-full mix-blend-screen" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/15 blur-[120px] rounded-full mix-blend-screen" />
       </div>
 
-      <div className="w-full max-w-7xl flex flex-col min-h-screen relative z-10 w-full">
+      <div className="w-full max-w-7xl flex flex-col min-h-dvh relative z-10">
         {/* Header - desktop */}
         <header className="hidden md:flex items-center justify-between px-6 py-4 mt-6 mx-6 rounded-2xl glass-panel">
           <NavLink to="/" className="text-2xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/70">
@@ -48,14 +48,14 @@ export function AppLayout() {
         </header>
 
         {/* Content */}
-        <main className={`flex-1 w-full pt-6 md:pt-10 px-4 md:px-6 ${hideMobileNav ? 'pb-12' : 'pb-28 md:pb-12'}`}>
+        <main className={`flex-1 w-full pt-6 md:pt-10 px-4 md:px-6 ${hideMobileNav ? 'pb-12' : 'md:pb-12'}`} style={!hideMobileNav ? { paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 7rem)' } : undefined}>
           <Outlet />
         </main>
       </div>
 
       {/* Bottom tab bar - mobile */}
       {!hideMobileNav && (
-        <nav className="md:hidden fixed bottom-6 left-4 right-4 glass-panel rounded-2xl flex justify-around p-2 z-50">
+        <nav className="md:hidden fixed left-4 right-4 glass-panel rounded-2xl flex justify-around p-2 z-50" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
