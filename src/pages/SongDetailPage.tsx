@@ -7,11 +7,12 @@ import { SongForm } from '../components/song/SongForm'
 import { Modal } from '../components/ui/Modal'
 import { FullPageSpinner } from '../components/ui/LoadingSpinner'
 import { showToast } from '../components/ui/Toast'
+import { extractShortId } from '../lib/slugify'
 import type { Song } from '../types/song'
 import type { ChordEntry } from '../types/chord'
 
 export function SongDetailPage() {
-  const { id } = useParams<{ id: string }>()
+  const { slug } = useParams<{ slug: string }>()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [song, setSong] = useState<Song | null>(null)
@@ -20,10 +21,15 @@ export function SongDetailPage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (!id) return
-    supabase.from('songs').select('*').eq('id', id).single()
-      .then(({ data }) => { setSong(data); setLoading(false) })
-  }, [id])
+    if (!slug) return
+    const idOrShort = extractShortId(slug)
+    // If full UUID, query exact match; otherwise query by prefix
+    const isFullUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/.test(idOrShort)
+    const query = isFullUuid
+      ? supabase.from('songs').select('*').eq('id', idOrShort).single()
+      : supabase.from('songs').select('*').ilike('id', `${idOrShort}%`).limit(1).single()
+    query.then(({ data }) => { setSong(data); setLoading(false) })
+  }, [slug])
 
   if (loading) return <FullPageSpinner />
   if (!song) return <div className="p-12 text-center text-slate-500 font-medium tracking-wide">Canción no encontrada</div>

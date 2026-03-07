@@ -11,6 +11,8 @@ export interface Song {
   is_public: boolean
   created_at: string
   updated_at: string
+  // Joined from profiles table (only on public queries)
+  profiles?: { display_name: string } | null
 }
 
 export type SongInsert = Omit<Song, 'id' | 'created_at' | 'updated_at'>

@@ -5,10 +5,9 @@ interface SongListProps {
   songs: Song[]
   showAuthor?: boolean
   emptyMessage?: string
-  linkPrefix?: string
 }
 
-export function SongList({ songs, showAuthor, emptyMessage = 'No hay canciones', linkPrefix }: SongListProps) {
+export function SongList({ songs, showAuthor, emptyMessage = 'No hay canciones' }: SongListProps) {
   if (songs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 mt-4 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-md">
@@ -27,7 +26,6 @@ export function SongList({ songs, showAuthor, emptyMessage = 'No hay canciones',
           key={song.id}
           song={song}
           showAuthor={showAuthor}
-          linkPrefix={linkPrefix}
         />
       ))}
     </div>

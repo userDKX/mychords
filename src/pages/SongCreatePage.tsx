@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSongs } from '../hooks/useSongs'
 import { SongForm } from '../components/song/SongForm'
+import { songPath } from '../lib/slugify'
 
 export function SongCreatePage() {
   const { createSong } = useSongs()
@@ -19,7 +20,7 @@ export function SongCreatePage() {
         onSave={async data => {
           setSaving(true)
           const result = await createSong({ ...data, chords: [], capo: data.capo ?? 0 })
-          if (result) navigate(`/songs/${result.id}`)
+          if (result) navigate(songPath(result))
           setSaving(false)
         }}
       />

@@ -1,16 +1,16 @@
 import { Link } from 'react-router-dom'
 import type { Song } from '../../types/song'
+import { songPath } from '../../lib/slugify'
 
 interface SongCardProps {
   song: Song
   showAuthor?: boolean
-  linkPrefix?: string
 }
 
-export function SongCard({ song, showAuthor, linkPrefix = '/songs' }: SongCardProps) {
+export function SongCard({ song, showAuthor }: SongCardProps) {
   return (
     <Link
-      to={`${linkPrefix}/${song.id}`}
+      to={songPath(song)}
       className="group relative flex flex-col justify-between overflow-hidden bg-slate-900/40 border border-white/10 hover:border-brand-500/50 rounded-3xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_15px_40px_-10px_rgba(99,102,241,0.3)] backdrop-blur-xl"
     >
       {/* Decorative gradient overlay */}
@@ -62,7 +62,7 @@ export function SongCard({ song, showAuthor, linkPrefix = '/songs' }: SongCardPr
             )}
           </div>
 
-          {showAuthor && <span className="text-xs text-slate-500 bg-black/20 px-2 py-1 rounded-md font-medium">Por {song.user_id.slice(0, 8)}</span>}
+          {showAuthor && song.profiles?.display_name && <span className="text-xs text-slate-500 bg-black/20 px-2 py-1 rounded-md font-medium">Por {song.profiles.display_name}</span>}
 
           <div className="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-brand-500 group-hover:text-white transition-all duration-300 shadow-sm group-hover:shadow-[0_0_20px_rgba(99,102,241,0.6)] group-hover:-rotate-12 group-hover:scale-110">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>

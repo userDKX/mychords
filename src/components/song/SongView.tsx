@@ -44,18 +44,7 @@ export function SongView({ song, isOwner, onUpdateChords }: SongViewProps) {
         <div className="bg-white/[0.02] border border-white/[0.05] rounded-3xl p-8 md:p-12 backdrop-blur-md shadow-2xl relative overflow-hidden">
           <div className="absolute right-0 top-0 w-40 h-40 bg-brand-500/10 blur-[60px] rounded-full pointer-events-none" />
 
-          <div className="absolute top-6 right-6 lg:top-8 lg:right-8 flex items-center gap-3">
-            {/* Fullscreen viewer button */}
-            {chords.length > 0 && (
-              <button
-                onClick={() => setFullscreen(true)}
-                className="w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300 ring-1 shadow-lg bg-emerald-500/10 text-emerald-400 hover:text-white hover:bg-emerald-500 ring-emerald-500/20 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
-                title="Ver acordes a pantalla completa"
-              >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
-              </button>
-            )}
-
+          <div className="absolute top-6 right-6 lg:top-8 lg:right-8 flex flex-col items-center gap-3">
             {/* Edit toggle */}
             {isOwner && onUpdateChords && (
               <button
@@ -71,6 +60,17 @@ export function SongView({ song, isOwner, onUpdateChords }: SongViewProps) {
                 ) : (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
                 )}
+              </button>
+            )}
+
+            {/* Fullscreen viewer button */}
+            {chords.length > 0 && (
+              <button
+                onClick={() => setFullscreen(true)}
+                className="w-12 h-12 flex items-center justify-center rounded-2xl transition-all duration-300 ring-1 shadow-lg bg-emerald-500/10 text-emerald-400 hover:text-white hover:bg-emerald-500 ring-emerald-500/20 hover:shadow-[0_0_20px_rgba(16,185,129,0.4)]"
+                title="Ver acordes a pantalla completa"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
               </button>
             )}
           </div>
@@ -101,7 +101,7 @@ export function SongView({ song, isOwner, onUpdateChords }: SongViewProps) {
                       {isOwner && onUpdateChords && isEditing && (
                         <button
                           onClick={() => handleRemoveChord(idx)}
-                          className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-400 text-white shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100 border-2 border-[#030712] hover:rotate-90 ring-2 ring-[#030712]"
+                          className="absolute -top-3 -right-3 w-10 h-10 rounded-full bg-rose-500 hover:bg-rose-400 text-white shadow-lg flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 scale-100 md:scale-90 md:group-hover:scale-100 border-2 border-[#030712] hover:rotate-90 ring-2 ring-[#030712]"
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                         </button>

@@ -25,9 +25,10 @@ https://mychord-wine.vercel.app/
 ## 📸 Screenshots
 
 <p align="center">
-  <img src="public/screenshots/view-2.png" width="250" />
-  <img src="public/screenshots/view-3.png" width="250" />
-  <img src="public/screenshots/view-4.png" width="250" />
+  <img src="public/screenshot/view-1.jpeg" width="250" />
+  <img src="public/screenshot/view-2.jpeg" width="250" />
+  <img src="public/screenshot/view-3.jpeg" width="250" />
+  <img src="public/screenshot/view-4.jpeg" width="250" />
 </p>
 ## ✨ Features
 

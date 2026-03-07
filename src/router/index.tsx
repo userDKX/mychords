@@ -18,7 +18,7 @@ export const router = createBrowserRouter([
       { path: '/', element: <HomePage /> },
       { path: '/songs', element: <SongsPage /> },
       { path: '/songs/new', element: <SongCreatePage /> },
-      { path: '/songs/:id', element: <SongDetailPage /> },
+      { path: '/songs/:slug', element: <SongDetailPage /> },
       { path: '/community', element: <CommunityPage /> },
     ],
   },

@@ -89,7 +89,7 @@ export function usePublicSongs() {
     setLoading(true)
     let query = supabase
       .from('songs')
-      .select('*')
+      .select('*, profiles(display_name)')
       .eq('is_public', true)
       .order('created_at', { ascending: false })
       .limit(50)
