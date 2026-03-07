@@ -20,10 +20,15 @@ Built with React, TypeScript and Supabase. The app allows musicians to manage th
 ---
 ## 🌐 Live Demo
 
-https://mychords.vercel.app
+https://mychord.vercel.app
 
 ## 📸 Screenshots
-Screenshots coming soon.
+
+<p align="center">
+  <img src="public/screenshots/view-2.png" width="250" />
+  <img src="public/screenshots/view-3.png" width="250" />
+  <img src="public/screenshots/view-4.png" width="250" />
+</p>
 ## ✨ Features
 
 | Feature | Description |

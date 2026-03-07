@@ -17,10 +17,10 @@ export function ChordFullscreenViewer({ chords, songTitle, capo, onClose }: Chor
   useEffect(() => {
     document.body.style.overflow = 'hidden'
     // Try to lock to landscape on mobile
-    screen.orientation?.lock?.('landscape').catch(() => {})
+    ;(screen.orientation as any)?.lock?.('landscape').catch(() => {})
     return () => {
       document.body.style.overflow = ''
-      screen.orientation?.unlock?.()
+      ;(screen.orientation as any)?.unlock?.()
     }
   }, [])
 
