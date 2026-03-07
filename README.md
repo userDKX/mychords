@@ -20,7 +20,7 @@ Built with React, TypeScript and Supabase. The app allows musicians to manage th
 ---
 ## 🌐 Live Demo
 
-https://mychord.vercel.app
+https://mychord-wine.vercel.app/
 
 ## 📸 Screenshots
 
