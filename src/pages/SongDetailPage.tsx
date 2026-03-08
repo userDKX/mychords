@@ -6,6 +6,7 @@ import { SongView } from '../components/song/SongView'
 import { SongForm } from '../components/song/SongForm'
 import { Modal } from '../components/ui/Modal'
 import { FullPageSpinner } from '../components/ui/LoadingSpinner'
+import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { showToast } from '../components/ui/Toast'
 import { extractId } from '../lib/slugify'
 import type { Song } from '../types/song'
@@ -18,6 +19,7 @@ export function SongDetailPage() {
   const [song, setSong] = useState<Song | null>(null)
   const [loading, setLoading] = useState(true)
   const [editOpen, setEditOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -79,10 +81,8 @@ export function SongDetailPage() {
       showToast('Sin conexión — no se puede eliminar', 'error')
       return
     }
-    if (confirm(`¿Eliminar la canción "${song.title}"?`)) {
-      await supabase.from('songs').delete().eq('id', song.id)
-      navigate('/songs')
-    }
+    await supabase.from('songs').delete().eq('id', song.id)
+    navigate('/songs')
   }
 
   return (
@@ -101,7 +101,7 @@ export function SongDetailPage() {
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
             </button>
             <button
-              onClick={handleDelete}
+              onClick={() => setDeleteOpen(true)}
               className="flex items-center justify-center w-11 h-11 text-rose-400 hover:text-rose-300 transition-colors bg-rose-500/10 hover:bg-rose-500/20 rounded-xl ring-1 ring-rose-500/20"
               title="Eliminar Canción"
             >
@@ -132,6 +132,14 @@ export function SongDetailPage() {
           onSave={handleUpdateInfo}
         />
       </Modal>
+
+      <ConfirmDialog
+        open={deleteOpen}
+        title="Eliminar canción"
+        message={`¿Estás seguro de que quieres eliminar "${song.title}"? Esta acción no se puede deshacer.`}
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={handleDelete}
+      />
     </div>
   )
 }
