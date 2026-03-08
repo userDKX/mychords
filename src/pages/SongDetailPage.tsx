@@ -7,7 +7,7 @@ import { SongForm } from '../components/song/SongForm'
 import { Modal } from '../components/ui/Modal'
 import { FullPageSpinner } from '../components/ui/LoadingSpinner'
 import { showToast } from '../components/ui/Toast'
-import { extractShortId } from '../lib/slugify'
+import { extractId } from '../lib/slugify'
 import type { Song } from '../types/song'
 import type { ChordEntry } from '../types/chord'
 
@@ -22,13 +22,9 @@ export function SongDetailPage() {
 
   useEffect(() => {
     if (!slug) return
-    const idOrShort = extractShortId(slug)
-    // If full UUID, query exact match; otherwise query by prefix
-    const isFullUuid = /^[0-9a-f]{8}-[0-9a-f]{4}/.test(idOrShort)
-    const query = isFullUuid
-      ? supabase.from('songs').select('*').eq('id', idOrShort).single()
-      : supabase.from('songs').select('*').ilike('id', `${idOrShort}%`).limit(1).single()
-    query.then(({ data }) => { setSong(data); setLoading(false) })
+    const songId = extractId(slug)
+    supabase.from('songs').select('*').eq('id', songId).single()
+      .then(({ data }) => { setSong(data); setLoading(false) })
   }, [slug])
 
   if (loading) return <FullPageSpinner />
