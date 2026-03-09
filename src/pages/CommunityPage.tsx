@@ -1,15 +1,26 @@
 import { useState } from 'react'
-import { usePublicSongs } from '../hooks/useSongs'
+import { usePublicSongs, useSavedSongs } from '../hooks/useSongs'
 import { SongList } from '../components/song/SongList'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import { SaveSongButton } from '../components/song/SaveSongButton'
+import type { Song } from '../types/song'
 
 export function CommunityPage() {
   const { songs, loading, search: searchSongs } = usePublicSongs()
+  const { isSaved, saveSong, removeSavedSong } = useSavedSongs()
   const [search, setSearch] = useState('')
 
   const handleSearch = (value: string) => {
     setSearch(value)
     searchSongs(value)
+  }
+
+  const handleToggleSave = (song: Song) => {
+    if (isSaved(song.id)) {
+      removeSavedSong(song.id)
+    } else {
+      saveSong(song)
+    }
   }
 
   return (
@@ -40,6 +51,12 @@ export function CommunityPage() {
             songs={songs}
             showAuthor
             emptyMessage={search ? 'No se encontraron resultados en la comunidad.' : 'No hay canciones públicas aún. ¡Sé el primero en compartir!'}
+            renderOverlay={(song) => (
+              <SaveSongButton
+                saved={isSaved(song.id)}
+                onToggle={() => handleToggleSave(song)}
+              />
+            )}
           />
         </div>
       )}

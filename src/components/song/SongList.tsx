@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import type { Song } from '../../types/song'
 import { SongCard } from './SongCard'
 
@@ -5,9 +6,11 @@ interface SongListProps {
   songs: Song[]
   showAuthor?: boolean
   emptyMessage?: string
+  onRemoveSaved?: (songId: string) => void
+  renderOverlay?: (song: Song) => ReactNode
 }
 
-export function SongList({ songs, showAuthor, emptyMessage = 'No hay canciones' }: SongListProps) {
+export function SongList({ songs, showAuthor, emptyMessage = 'No hay canciones', onRemoveSaved, renderOverlay }: SongListProps) {
   if (songs.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-12 mt-4 bg-white/[0.02] border border-white/[0.05] rounded-3xl backdrop-blur-md">
@@ -26,6 +29,8 @@ export function SongList({ songs, showAuthor, emptyMessage = 'No hay canciones' 
           key={song.id}
           song={song}
           showAuthor={showAuthor}
+          onRemoveSaved={onRemoveSaved}
+          overlay={renderOverlay?.(song)}
         />
       ))}
     </div>
