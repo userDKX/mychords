@@ -42,3 +42,29 @@ function clearVolatileCaches(): void {
   )
   keys.forEach(k => localStorage.removeItem(k))
 }
+
+/* ── Cache mutation helpers (used by SongDetailPage) ── */
+
+import type { Song } from '../types/song'
+
+/** Update a single song in the user's songs cache */
+export function updateSongInCache(userId: string, updatedSong: Song): void {
+  const key = `songs_${userId}`
+  const cached = getCached<Song[]>(key)
+  if (!cached) return
+  const updated = cached.data.map(s => s.id === updatedSong.id ? updatedSong : s)
+  setCache(key, updated)
+}
+
+/** Remove a song from the user's songs cache */
+export function deleteSongFromCache(userId: string, songId: string): void {
+  const key = `songs_${userId}`
+  const cached = getCached<Song[]>(key)
+  if (!cached) return
+  setCache(key, cached.data.filter(s => s.id !== songId))
+}
+
+/** Invalidate the public songs cache so it re-fetches next time */
+export function invalidatePublicCache(): void {
+  removeCache('public_songs')
+}
