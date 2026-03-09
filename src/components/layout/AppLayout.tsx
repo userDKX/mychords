@@ -2,7 +2,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import type { SVGProps } from 'react'
 
 const navItems = [
-  { to: '/', label: 'Inicio', icon: UserIcon },
+  { to: '/', label: 'Perfil', icon: UserIcon },
   { to: '/songs', label: 'Mis Canciones', icon: MusicIcon },
   { to: '/community', label: 'Comunidad', icon: GlobeIcon },
 ]
