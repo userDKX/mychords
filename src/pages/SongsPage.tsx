@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useSongs, useSavedSongs } from '../hooks/useSongs'
 import { SongList } from '../components/song/SongList'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import { useOnline } from '../hooks/useOnline'
 
 type Tab = 'mine' | 'saved'
 
@@ -10,6 +11,7 @@ export function SongsPage() {
   const { songs, loading } = useSongs()
   const { savedSongs, removeSavedSong } = useSavedSongs()
   const navigate = useNavigate()
+  const online = useOnline()
   const [search, setSearch] = useState('')
   const [tab, setTab] = useState<Tab>('mine')
 
@@ -24,10 +26,12 @@ export function SongsPage() {
     <div className="w-full max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
       <div className="flex items-center justify-between gap-4 flex-wrap mt-2">
         <h1 className="text-3xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-white to-white/60">Mis Canciones</h1>
-        <button onClick={() => navigate('/songs/new')} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-medium transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] border border-brand-400/50 active:scale-95 shrink-0">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
-          Nueva
-        </button>
+        {online && (
+          <button onClick={() => navigate('/songs/new')} className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-white font-medium transition-all duration-300 shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] border border-brand-400/50 active:scale-95 shrink-0">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14M5 12h14" /></svg>
+            Nueva
+          </button>
+        )}
       </div>
 
       {/* Tabs */}
