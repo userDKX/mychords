@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ChordDiagram } from './ChordDiagram'
 import { Button } from '../ui/Button'
 import { calcBaseFret } from '../../types/chord'
+import { identifyChord, getNoteName } from '../../lib/chordIdentifier'
 
 interface ChordEditorProps {
   initialFrets?: number[]
@@ -13,6 +14,7 @@ interface ChordEditorProps {
 const NUM_STRINGS = 6
 const NUM_FRETS = 5
 const EMPTY_FRETS = [-1, -1, -1, -1, -1, -1]
+const STRING_LABELS = ['E', 'A', 'D', 'G', 'B', 'E']
 
 export function ChordEditor({ initialFrets, onSave, onCancel, saving }: ChordEditorProps) {
   const [frets, setFrets] = useState<number[]>(initialFrets ?? [...EMPTY_FRETS])
@@ -32,6 +34,7 @@ export function ChordEditor({ initialFrets, onSave, onCancel, saving }: ChordEdi
   }
 
   const hasAnyDot = frets.some(f => f > 0) || frets.some(f => f === 0)
+  const detected = identifyChord(frets)
 
   // Editor grid dimensions
   const padTop = 30
@@ -41,7 +44,7 @@ export function ChordEditor({ initialFrets, onSave, onCancel, saving }: ChordEdi
   const gridWidth = (NUM_STRINGS - 1) * stringSpacing
   const gridHeight = NUM_FRETS * fretSpacing
   const totalWidth = padLeft + gridWidth + 20
-  const totalHeight = padTop + gridHeight + 20
+  const totalHeight = padTop + gridHeight + 40
   const dotRadius = 11
 
   return (
@@ -57,6 +60,14 @@ export function ChordEditor({ initialFrets, onSave, onCancel, saving }: ChordEdi
         </div>
         <Button variant="ghost" size="sm" onClick={() => setFrets([...EMPTY_FRETS])} className="ring-1 ring-white/10">Limpiar</Button>
       </div>
+
+      {/* Detected chord name */}
+      {detected && (
+        <div className="flex items-center justify-center gap-3 py-3 px-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-emerald-400" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" /></svg>
+          <span className="text-emerald-400 font-bold text-lg tracking-wide">{detected.full}</span>
+        </div>
+      )}
 
       <p className="text-xs text-slate-400 font-medium">Toca <span className="text-brand-400">arriba de cuerda</span> = abierta/silenciada.<br />Toca <span className="text-brand-400">en traste</span> = poner/quitar punto.</p>
 
@@ -102,11 +113,40 @@ export function ChordEditor({ initialFrets, onSave, onCancel, saving }: ChordEdi
               return (
                 <g key={`cell-${si}-${fi}`}>
                   <rect x={x - 16} y={y - 18} width={32} height={36} fill="transparent" className="cursor-pointer" onPointerDown={() => handleFretClick(si, fi)} />
-                  {isActive && <circle cx={x} cy={y} r={dotRadius} fill="currentColor" className="text-brand-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.6)]" />}
+                  {isActive && (
+                    <>
+                      <circle cx={x} cy={y} r={dotRadius} fill="currentColor" className="text-brand-500 drop-shadow-[0_0_8px_rgba(99,102,241,0.6)]" />
+                      <text x={x} y={y + 4} textAnchor="middle" fill="white" fontSize={9} fontWeight="bold">{getNoteName(si, actualFret)}</text>
+                    </>
+                  )}
                 </g>
               )
             })
           )}
+
+          {/* Note labels for open strings at bottom */}
+          {frets.map((fret, si) => {
+            if (fret < 0) return null
+            const x = padLeft + si * stringSpacing
+            const y = padTop + gridHeight + 16
+            const note = getNoteName(si, fret)
+            return (
+              <text key={`note-${si}`} x={x} y={y} textAnchor="middle" fill="currentColor" className="text-emerald-400" fontSize={10} fontWeight="600">
+                {note}
+              </text>
+            )
+          })}
+
+          {/* String name labels at very bottom */}
+          {STRING_LABELS.map((label, si) => {
+            const x = padLeft + si * stringSpacing
+            const y = padTop + gridHeight + 30
+            return (
+              <text key={`str-${si}`} x={x} y={y} textAnchor="middle" fill="currentColor" className="text-slate-600" fontSize={9} fontWeight="500">
+                {label}
+              </text>
+            )
+          })}
         </svg>
 
         <div className="flex flex-col items-center gap-3">

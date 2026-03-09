@@ -1,4 +1,5 @@
 import { calcBaseFret } from '../../types/chord'
+import { identifyChord } from '../../lib/chordIdentifier'
 
 interface ChordDiagramProps {
   frets: number[]
@@ -11,6 +12,8 @@ const NUM_FRETS = 5
 
 export function ChordDiagram({ frets, name, size = 120 }: ChordDiagramProps) {
   const baseFret = calcBaseFret(frets)
+  const detected = !name ? identifyChord(frets) : null
+  const displayName = name || detected?.short || null
   const scale = size / 120
   const padTop = 28 * scale
   const padLeft = 20 * scale
@@ -32,17 +35,17 @@ export function ChordDiagram({ frets, name, size = 120 }: ChordDiagramProps) {
       className="block"
     >
       {/* Name */}
-      {name && (
+      {displayName && (
         <text
           x={padLeft + gridWidth / 2}
           y={10 * scale}
           textAnchor="middle"
           fill="currentColor"
-          className="text-white"
-          fontSize={12 * scale}
+          className={name ? 'text-white' : 'text-emerald-400'}
+          fontSize={11 * scale}
           fontWeight="700"
         >
-          {name}
+          {displayName}
         </text>
       )}
 
