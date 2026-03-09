@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { useOnline } from '../hooks/useOnline'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { SongView } from '../components/song/SongView'
@@ -10,9 +11,34 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { showToast } from '../components/ui/Toast'
 import { extractId } from '../lib/slugify'
 import { useSavedSongs } from '../hooks/useSongs'
-import { getCached } from '../lib/cache'
+import { getCached, updateSongInCache, deleteSongFromCache, invalidatePublicCache } from '../lib/cache'
 import type { Song } from '../types/song'
 import type { ChordEntry } from '../types/chord'
+
+function findSongInCaches(songId: string): Song | null {
+  // Check user songs caches
+  const userCaches = Object.keys(localStorage).filter(k => k.startsWith('mychords_songs_'))
+  for (const k of userCaches) {
+    try {
+      const entry = JSON.parse(localStorage.getItem(k)!)
+      const found = entry?.data?.find?.((s: Song) => s.id === songId)
+      if (found) return found
+    } catch { /* skip */ }
+  }
+  // Check public songs cache
+  const pub = getCached<Song[]>('public_songs')
+  if (pub) {
+    const found = pub.data.find(s => s.id === songId)
+    if (found) return found
+  }
+  // Check saved songs cache
+  const saved = getCached<Song[]>('saved_songs')
+  if (saved) {
+    const found = saved.data.find(s => s.id === songId)
+    if (found) return found
+  }
+  return null
+}
 
 export function SongDetailPage() {
   const { slug } = useParams<{ slug: string }>()
@@ -24,47 +50,20 @@ export function SongDetailPage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const { isSaved, saveSong, removeSavedSong } = useSavedSongs()
+  const online = useOnline()
 
   useEffect(() => {
     if (!slug) return
     const songId = extractId(slug)
 
-    // Try to load from cache first (offline support)
-    const tryCache = (): Song | null => {
-      // Check user songs cache
-      const userCaches = Object.keys(localStorage)
-        .filter(k => k.startsWith('mychords_songs_'))
-      for (const k of userCaches) {
-        try {
-          const entry = JSON.parse(localStorage.getItem(k)!)
-          const found = entry?.data?.find?.((s: Song) => s.id === songId)
-          if (found) return found
-        } catch { /* skip */ }
-      }
-      // Check public songs cache
-      const pub = getCached<Song[]>('public_songs')
-      if (pub) {
-        const found = pub.data.find(s => s.id === songId)
-        if (found) return found
-      }
-      // Check saved songs cache
-      const saved = getCached<Song[]>('saved_songs')
-      if (saved) {
-        const found = saved.data.find(s => s.id === songId)
-        if (found) return found
-      }
-      return null
-    }
-
     if (!navigator.onLine) {
-      const cached = tryCache()
-      setSong(cached)
+      setSong(findSongInCaches(songId))
       setLoading(false)
       return
     }
 
-    // Try cache first for instant display, then sync from network
-    const cached = tryCache()
+    // Show cached data instantly
+    const cached = findSongInCaches(songId)
     if (cached) {
       setSong(cached)
       setLoading(false)
@@ -82,6 +81,15 @@ export function SongDetailPage() {
 
   const isOwner = user?.id === song.user_id
 
+  const syncCache = (updated: Song, prev: Song) => {
+    if (!user) return
+    updateSongInCache(user.id, updated)
+    // If public status changed, invalidate public cache
+    if (updated.is_public !== prev.is_public) {
+      invalidatePublicCache()
+    }
+  }
+
   const handleUpdateChords = async (chords: ChordEntry[]) => {
     if (!navigator.onLine) {
       showToast('Sin conexión — no se pueden guardar los acordes', 'error')
@@ -97,7 +105,10 @@ export function SongDetailPage() {
       showToast('Error al guardar los acordes', 'error')
       return
     }
-    if (data) setSong(data)
+    if (data) {
+      syncCache(data, song)
+      setSong(data)
+    }
   }
 
   const handleUpdateInfo = async (info: { title: string; artist: string; notes: string; capo: number; is_public: boolean }) => {
@@ -118,6 +129,7 @@ export function SongDetailPage() {
       return
     }
     if (data) {
+      syncCache(data, song)
       setSong(data)
       setEditOpen(false)
       showToast('Canción actualizada', 'success')
@@ -129,14 +141,22 @@ export function SongDetailPage() {
       showToast('Sin conexión — no se puede eliminar', 'error')
       return
     }
-    await supabase.from('songs').delete().eq('id', song.id)
+    const { error } = await supabase.from('songs').delete().eq('id', song.id)
+    if (error) {
+      showToast('Error al eliminar la canción', 'error')
+      return
+    }
+    if (user) {
+      deleteSongFromCache(user.id, song.id)
+      if (song.is_public) invalidatePublicCache()
+    }
     navigate('/songs')
   }
 
   return (
     <div className="w-full max-w-4xl mx-auto pb-6">
       <div className="flex items-center justify-between gap-3 mb-8 px-2 md:px-0">
-        <button onClick={() => navigate('/songs')} className="flex items-center justify-center w-11 h-11 text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl" title="Volver">
+        <button onClick={() => navigate(-1)} className="flex items-center justify-center w-11 h-11 text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 rounded-xl" title="Volver">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
         </button>
         <div className="flex items-center gap-3">
@@ -160,7 +180,7 @@ export function SongDetailPage() {
               </button>
             )
           )}
-          {isOwner && (
+          {isOwner && online && (
             <>
               <button
                 onClick={() => setEditOpen(true)}
@@ -184,7 +204,7 @@ export function SongDetailPage() {
       <SongView
         song={song}
         isOwner={isOwner}
-        onUpdateChords={isOwner ? handleUpdateChords : undefined}
+        onUpdateChords={isOwner && online ? handleUpdateChords : undefined}
       />
 
       {/* Edit song info modal */}
