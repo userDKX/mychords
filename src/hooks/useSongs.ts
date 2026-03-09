@@ -11,8 +11,15 @@ function cacheKey(userId: string) {
 
 export function useSongs() {
   const { user } = useAuth()
-  const [songs, setSongs] = useState<Song[]>([])
-  const [loading, setLoading] = useState(true)
+  const [songs, setSongs] = useState<Song[]>(() => {
+    if (!user) return []
+    const cached = getCached<Song[]>(cacheKey(user.id))
+    return cached?.data ?? []
+  })
+  const [loading, setLoading] = useState(() => {
+    if (!user) return true
+    return !getCached<Song[]>(cacheKey(user.id))
+  })
   const didSync = useRef(false)
 
   const fetchSongs = useCallback(async (forceNetwork = false) => {
@@ -21,11 +28,10 @@ export function useSongs() {
     const key = cacheKey(user.id)
     const cached = getCached<Song[]>(key)
 
-    // Always show cached data instantly
+    // Always re-read from cache (it may have been updated by SongDetailPage)
     if (cached) {
       setSongs(cached.data)
       setLoading(false)
-      // If offline or already synced this session and not forced, stop here
       if (!navigator.onLine || (didSync.current && !forceNetwork)) return
     } else {
       if (!navigator.onLine) {
@@ -35,7 +41,6 @@ export function useSongs() {
       setLoading(true)
     }
 
-    // Sync from network
     const { data, error } = await supabase
       .from('songs')
       .select('*')
@@ -57,7 +62,6 @@ export function useSongs() {
   }, [user])
 
   useEffect(() => {
-    didSync.current = false
     fetchSongs()
   }, [fetchSongs])
 
@@ -126,69 +130,71 @@ export function useSongs() {
 
 const PUBLIC_CACHE_KEY = 'public_songs'
 
+async function fetchPublicFromServer(search?: string): Promise<Song[] | null> {
+  // Try with profiles join first (works if sql_profiles.sql was executed)
+  let query = supabase
+    .from('songs')
+    .select('*, profiles(display_name)')
+    .eq('is_public', true)
+    .order('created_at', { ascending: false })
+    .limit(50)
+  if (search) query = query.or(`title.ilike.%${search}%,artist.ilike.%${search}%`)
+
+  const { data, error } = await query
+  if (!error && data) return data as unknown as Song[]
+
+  // Fallback: fetch without join
+  let fallback = supabase
+    .from('songs')
+    .select('*')
+    .eq('is_public', true)
+    .order('created_at', { ascending: false })
+    .limit(50)
+  if (search) fallback = fallback.or(`title.ilike.%${search}%,artist.ilike.%${search}%`)
+
+  const { data: plain, error: err2 } = await fallback
+  if (err2 || !plain) return null
+  return plain
+}
+
 export function usePublicSongs() {
   const [songs, setSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
-  const didSync = useRef(false)
 
   const fetchPublicSongs = useCallback(async (search?: string) => {
-    // Use cache for initial load (no search filter)
-    if (!search) {
+    // Offline: show cached data as fallback
+    if (!navigator.onLine) {
       const cached = getCached<Song[]>(PUBLIC_CACHE_KEY)
       if (cached) {
-        setSongs(cached.data)
-        setLoading(false)
-        if (!navigator.onLine || didSync.current) return
-      } else {
-        if (!navigator.onLine) {
-          setLoading(false)
-          return
-        }
-        setLoading(true)
-      }
-    } else {
-      if (!navigator.onLine) {
-        // Search locally within cached data when offline
-        const cached = getCached<Song[]>(PUBLIC_CACHE_KEY)
-        if (cached) {
+        const data = cached.data
+        if (search) {
           const q = search.toLowerCase()
-          setSongs(cached.data.filter(s =>
+          setSongs(data.filter(s =>
             s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q)
           ))
+        } else {
+          setSongs(data)
         }
-        setLoading(false)
-        return
       }
-      setLoading(true)
+      setLoading(false)
+      showToast('Sin conexión — mostrando datos guardados', 'warning')
+      return
     }
 
-    let query = supabase
-      .from('songs')
-      .select('*, profiles(display_name)')
-      .eq('is_public', true)
-      .order('created_at', { ascending: false })
-      .limit(50)
-    if (search) {
-      query = query.or(`title.ilike.%${search}%,artist.ilike.%${search}%`)
-    }
-    const { data, error } = await query
-    if (error) {
-      if (!navigator.onLine) showToast('Sin conexión — mostrando datos guardados', 'warning')
+    // Online: always fetch from server
+    setLoading(true)
+    const data = await fetchPublicFromServer(search)
+    if (!data) {
+      showToast('Error al cargar canciones', 'error')
       setLoading(false)
       return
     }
-    if (data) {
-      setSongs(data)
-      if (!search) {
-        setCache(PUBLIC_CACHE_KEY, data)
-        didSync.current = true
-      }
-    }
+    setSongs(data)
+    if (!search) setCache(PUBLIC_CACHE_KEY, data)
     setLoading(false)
   }, [])
 
   useEffect(() => {
-    didSync.current = false
     fetchPublicSongs()
   }, [fetchPublicSongs])
 
